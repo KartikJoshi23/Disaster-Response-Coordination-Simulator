@@ -14,7 +14,7 @@ import {
 } from "../engine/DisasterEnvironment";
 import { NashQLearning } from "../engine/NashQLearning";
 import { SeededRNG } from "../utils/poissonSampler";
-import { Activity, Flame, HeartPulse, Truck, Waves, Sparkles } from "lucide-react";
+import { Activity, Flame, HeartPulse, Truck, Waves, Sparkles, Timer, Gauge } from "lucide-react";
 
 const AGENT_META: Record<
   AgentId,
@@ -35,6 +35,9 @@ export default function Simulation() {
   const [running, setRunning] = useState(false);
   const [speed, setSpeed] = useState(420);
   const [strategy, setStrategy] = useState<StrategyName>("Nash Q-Learning");
+  const [severityScale, setSeverityScale] = useState(1);
+  const [resourceScale, setResourceScale] = useState(1);
+  const [cooperationIncentive, setCooperationIncentive] = useState(1);
 
   // Train a lightweight Nash-Q agent in the background for the live policy.
   useEffect(() => {
@@ -84,6 +87,21 @@ export default function Simulation() {
     rngRef.current.reseed(2024);
     setSnapshot(envRef.current.reset(42));
   }, []);
+
+  // Re-apply scenario knobs and restart the episode whenever a knob changes,
+  // so the new coordination outcome is immediately observable.
+  const applyConfig = useCallback(
+    (next: Partial<{
+      severityScale: number;
+      resourceScale: number;
+      cooperationIncentive: number;
+    }>) => {
+      envRef.current.configure(next);
+      rngRef.current.reseed(2024);
+      setSnapshot(envRef.current.reset(42));
+    },
+    [],
+  );
 
   // Animation loop.
   useEffect(() => {
@@ -136,7 +154,7 @@ export default function Simulation() {
           <DisasterGrid snapshot={snapshot} />
 
           {/* Live metric strip */}
-          <div className="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div className="mt-6 grid grid-cols-2 sm:grid-cols-3 gap-3">
             <LiveStat
               label="Cumulative reward"
               value={snapshot.cumulativeReward.toFixed(1)}
@@ -153,9 +171,19 @@ export default function Simulation() {
               icon={<Activity size={14} />}
             />
             <LiveStat
+              label="Avg response time"
+              value={snapshot.avgResponseTime.toFixed(2)}
+              icon={<Timer size={14} />}
+            />
+            <LiveStat
               label="Fairness (Jain)"
               value={fairness.toFixed(3)}
               icon={<Waves size={14} />}
+            />
+            <LiveStat
+              label="Utilisation"
+              value={`${(utilisation * 100).toFixed(1)}%`}
+              icon={<Gauge size={14} />}
             />
           </div>
         </div>
@@ -166,12 +194,27 @@ export default function Simulation() {
             running={running}
             speed={speed}
             strategy={strategy}
+            severityScale={severityScale}
+            resourceScale={resourceScale}
+            cooperationIncentive={cooperationIncentive}
             onToggleRun={() => setRunning((r) => !r)}
             onStep={stepOnce}
             onReset={reset}
             onSpeed={setSpeed}
             onStrategy={(s) => {
               setStrategy(s);
+            }}
+            onSeverity={(v) => {
+              setSeverityScale(v);
+              applyConfig({ severityScale: v });
+            }}
+            onResources={(v) => {
+              setResourceScale(v);
+              applyConfig({ resourceScale: v });
+            }}
+            onCoopIncentive={(v) => {
+              setCooperationIncentive(v);
+              applyConfig({ cooperationIncentive: v });
             }}
           />
 

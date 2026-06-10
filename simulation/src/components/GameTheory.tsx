@@ -140,10 +140,13 @@ export default function GameTheory({ results }: Props) {
           ))}
         </div>
         <p className="mt-4 text-xs text-[var(--muted)] leading-relaxed">
-          The value function is super-additive: v(S∪T) ≥ v(S) + v(T), which is
-          why cooperation creates surplus that the Shapley value then distributes
-          fairly. Logistics carries the largest marginal contribution, mirroring
-          its 98% FEMA Public-Assistance activation rate.
+          Logistics single-handedly resolves the most incidents (v(L) = 36.3),
+          mirroring its 98% FEMA Public-Assistance activation rate. Adding
+          Medical introduces congestion that slightly lowers the joint resolved
+          count, so its average marginal contribution — and therefore its
+          Shapley value — is mildly negative. The Shapley value distributes the
+          grand-coalition worth (33.85) by average marginal contribution across
+          all join orders, satisfying the efficiency axiom.
         </p>
       </section>
     </div>

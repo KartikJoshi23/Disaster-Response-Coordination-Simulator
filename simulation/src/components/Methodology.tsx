@@ -152,8 +152,8 @@ export default function Methodology() {
             detail="663,522 EMS / Fire / Traffic calls. Calibrates hourly arrival intensity per agency."
           />
           <DataCard
-            title="PA Funded Projects"
-            detail="Public-Assistance obligations set the relative magnitude of agency resource budgets."
+            title="FEMA Program Activation"
+            detail="ihp / ia / pa program-declared rates (Medical 26%, Rescue 0%, Logistics 98%) scale each agency's resource budget."
           />
         </div>
         <p className="mt-4 text-xs text-[var(--muted)]">

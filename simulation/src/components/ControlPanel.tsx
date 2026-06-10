@@ -1,26 +1,38 @@
-import { Pause, Play, RotateCcw, StepForward, Gauge } from "lucide-react";
+import { Pause, Play, RotateCcw, StepForward, Gauge, SlidersHorizontal } from "lucide-react";
 import { StrategyName, STRATEGY_NAMES } from "../types";
 
 interface Props {
   running: boolean;
   speed: number;
   strategy: StrategyName;
+  severityScale: number;
+  resourceScale: number;
+  cooperationIncentive: number;
   onToggleRun: () => void;
   onStep: () => void;
   onReset: () => void;
   onSpeed: (v: number) => void;
   onStrategy: (s: StrategyName) => void;
+  onSeverity: (v: number) => void;
+  onResources: (v: number) => void;
+  onCoopIncentive: (v: number) => void;
 }
 
 export default function ControlPanel({
   running,
   speed,
   strategy,
+  severityScale,
+  resourceScale,
+  cooperationIncentive,
   onToggleRun,
   onStep,
   onReset,
   onSpeed,
   onStrategy,
+  onSeverity,
+  onResources,
+  onCoopIncentive,
 }: Props) {
   return (
     <div className="glass rounded-2xl p-5 space-y-5">
@@ -99,6 +111,85 @@ export default function ControlPanel({
           {DESCRIPTIONS[strategy]}
         </p>
       </div>
+
+      {/* Scenario knobs — the spec's user-modifiable parameters */}
+      <div className="pt-4 border-t border-[var(--border)] space-y-4">
+        <div className="flex items-center gap-2 text-xs text-[var(--muted)]">
+          <SlidersHorizontal size={13} className="text-[var(--accent-2)]" />
+          Scenario parameters
+        </div>
+
+        <Slider
+          label="Disaster severity"
+          value={severityScale}
+          min={0.5}
+          max={2}
+          step={0.1}
+          onChange={onSeverity}
+          hint="Scales incident intensity across the grid."
+        />
+        <Slider
+          label="Resource availability"
+          value={resourceScale}
+          min={0.4}
+          max={1.6}
+          step={0.1}
+          onChange={onResources}
+          hint="Scales each agency's starting resource budget."
+        />
+        <Slider
+          label="Cooperation incentive"
+          value={cooperationIncentive}
+          min={0}
+          max={2}
+          step={0.1}
+          onChange={onCoopIncentive}
+          hint="Strength of the synergy bonus when agencies coordinate."
+        />
+        <p className="text-[11px] text-[var(--muted)] leading-relaxed">
+          Adjusting any parameter restarts the episode so you can observe the
+          coordination outcome under the new conditions.
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function Slider({
+  label,
+  value,
+  min,
+  max,
+  step,
+  onChange,
+  hint,
+}: {
+  label: string;
+  value: number;
+  min: number;
+  max: number;
+  step: number;
+  onChange: (v: number) => void;
+  hint: string;
+}) {
+  return (
+    <div>
+      <div className="flex justify-between text-xs mb-1.5">
+        <span className="text-[var(--text)]">{label}</span>
+        <span className="font-mono text-[var(--accent)]">
+          ×{value.toFixed(1)}
+        </span>
+      </div>
+      <input
+        type="range"
+        min={min}
+        max={max}
+        step={step}
+        value={value}
+        onChange={(e) => onChange(Number(e.target.value))}
+        className="w-full"
+      />
+      <p className="mt-1 text-[10px] text-[var(--muted)]">{hint}</p>
     </div>
   );
 }

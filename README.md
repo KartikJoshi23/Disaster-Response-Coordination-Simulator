@@ -80,17 +80,17 @@ jupyter notebook notebook/solution.ipynb
 
 | Dataset | File | Role |
 |---|---|---|
-| FEMA Disaster Declarations v2 | `DisasterDeclarationsSummaries.csv` | Agency mapping, Poisson λ, budgets |
+| FEMA Disaster Declarations v2 | `DisasterDeclarationsSummaries.csv` | Agency mapping, Poisson λ, resource budgets |
 | Montgomery County 911 Calls | `911.csv` | Hourly arrival-rate calibration |
-| PA Funded Projects | `PublicAssistanceFundedProjectsDetails.csv` | Budget magnitudes (reference) |
 
-> **Note on data files.** The raw CSVs exceed GitHub's 100 MB limit and are
-> therefore **git-ignored**. The notebook loads FEMA from the public FEMA API
-> URL automatically. The 911 dataset is on
-> [Kaggle](https://www.kaggle.com/datasets/mchirico/montcoalert); place `911.csv`
-> beside the notebook for exact figures, otherwise the notebook synthesises a
-> representative call log so it still runs end-to-end. The committed notebook
-> outputs were produced from the real local datasets.
+> **Note on data files.** Both datasets above are committed for full
+> reproducibility. `911.csv` is reduced to the three columns the notebook
+> actually reads (`title`, `timeStamp`, `twp`) — all 663,522 rows are kept, so
+> every calibrated value is identical to the original. FEMA can also be loaded
+> from its public API URL automatically. The full 911 log (with geo columns) and
+> the 264 MB `PublicAssistanceFundedProjectsDetails.csv` (not used by the
+> notebook) are git-ignored to stay within GitHub's size limit. The committed
+> notebook outputs were produced from these real datasets.
 
 ---
 

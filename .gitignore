@@ -2,15 +2,19 @@
 # DisasterCoord AI — .gitignore
 # ============================================================================
 
-# ---- Large raw datasets (exceed GitHub's 100 MB limit; fetched at runtime) ----
-# FEMA loads via the public API URL; 911 falls back to a synthetic log if absent.
-# Download 911.csv from https://www.kaggle.com/datasets/mchirico/montcoalert
-911.csv
-DisasterDeclarationsSummaries.csv
-PublicAssistanceFundedProjectsDetails.csv
+# ---- Datasets ----
+# Committed for reproducibility (under GitHub's 100 MB limit):
+#   911.csv  -> reduced to the 3 columns the notebook reads (title/timeStamp/twp),
+#               all 663,522 rows preserved so calibration is identical (~36 MB).
+#   DisasterDeclarationsSummaries.csv -> FEMA declarations (~22 MB).
+# NOT committed: the 264 MB PA file (never loaded by the notebook) and the
+# full 117 MB 911 backup.
 *.csv
-# ...but DO keep the small generated results table committed.
+!911.csv
+!DisasterDeclarationsSummaries.csv
 !images/results_table.csv
+PublicAssistanceFundedProjectsDetails.csv
+911_full.csv
 
 # ---- Node / Vite (simulation) ----
 node_modules/

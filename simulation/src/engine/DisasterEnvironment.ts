@@ -8,13 +8,20 @@ import {
   AGENT_IDS,
   AgentId,
   Calibration,
+  DEFAULT_ENV_CONFIG,
+  EnvConfig,
   EnvSnapshot,
   Incident,
   Phase,
   PHASES,
   ZoneState,
 } from "../types";
-import { jainFairness, samplePoisson, SeededRNG } from "../utils/poissonSampler";
+import {
+  clamp,
+  jainFairness,
+  samplePoisson,
+  SeededRNG,
+} from "../utils/poissonSampler";
 
 export const GRID_SIZE = 5;
 export const GRID_CELLS = GRID_SIZE * GRID_SIZE; // 25 zones
@@ -58,17 +65,35 @@ export class DisasterEnvironment {
   cumulativeReward = 0;
   totalResolved = 0;
   cooperationEvents = 0;
+  responseTimeSum = 0;
+  responseTimeCount = 0;
   lastActions: Record<AgentId, number> = { Medical: 0, Rescue: 0, Logistics: 0 };
   lastReward = 0;
   resolvedThisStep = 0;
+  config: EnvConfig;
 
-  constructor(seed = 42) {
+  constructor(seed = 42, config: EnvConfig = DEFAULT_ENV_CONFIG) {
     this.rng = new SeededRNG(seed);
-    this.budgets = { ...CALIBRATION.budget };
+    this.config = { ...config };
+    this.budgets = this.scaledBudgets();
   }
 
   get phase(): Phase {
     return PHASES[this.phaseIndex];
+  }
+
+  /** Starting budgets after applying the resource-availability knob. */
+  private scaledBudgets(): Record<AgentId, number> {
+    return {
+      Medical: CALIBRATION.budget.Medical * this.config.resourceScale,
+      Rescue: CALIBRATION.budget.Rescue * this.config.resourceScale,
+      Logistics: CALIBRATION.budget.Logistics * this.config.resourceScale,
+    };
+  }
+
+  /** Update scenario knobs (applied on the next reset). */
+  configure(config: Partial<EnvConfig>): void {
+    this.config = { ...this.config, ...config };
   }
 
   /** Reset to a fresh episode. */
@@ -77,10 +102,12 @@ export class DisasterEnvironment {
     this.step = 0;
     this.phaseIndex = 0;
     this.incidents = [];
-    this.budgets = { ...CALIBRATION.budget };
+    this.budgets = this.scaledBudgets();
     this.cumulativeReward = 0;
     this.totalResolved = 0;
     this.cooperationEvents = 0;
+    this.responseTimeSum = 0;
+    this.responseTimeCount = 0;
     this.lastReward = 0;
     this.resolvedThisStep = 0;
     this.spawnIncidents();
@@ -94,10 +121,17 @@ export class DisasterEnvironment {
       const lam = CALIBRATION.lambda[agent] * intensity;
       const count = Math.min(samplePoisson(lam, this.rng), 6);
       for (let i = 0; i < count; i++) {
+        // Base severity 1..5 scaled by the disaster-intensity knob (capped 1..10).
+        const baseSeverity = 1 + this.rng.int(MAX_SEVERITY);
+        const severity = clamp(
+          Math.round(baseSeverity * this.config.severityScale),
+          1,
+          2 * MAX_SEVERITY,
+        );
         this.incidents.push({
           zone: this.rng.int(GRID_CELLS),
           type: agent,
-          severity: 1 + this.rng.int(MAX_SEVERITY),
+          severity,
           age: 0,
         });
       }
@@ -111,11 +145,9 @@ export class DisasterEnvironment {
   discretiseState(): number {
     const totalBudget =
       this.budgets.Medical + this.budgets.Rescue + this.budgets.Logistics;
-    const baseBudget =
-      CALIBRATION.budget.Medical +
-      CALIBRATION.budget.Rescue +
-      CALIBRATION.budget.Logistics;
-    const pressure = 1 - totalBudget / baseBudget; // 0..1
+    const start = this.scaledBudgets();
+    const baseBudget = start.Medical + start.Rescue + start.Logistics;
+    const pressure = baseBudget === 0 ? 1 : 1 - totalBudget / baseBudget; // 0..1
     const pBucket = pressure < 0.33 ? 0 : pressure < 0.66 ? 1 : 2;
 
     const load = this.incidents.reduce((a, b) => a + b.severity, 0);
@@ -144,6 +176,11 @@ export class DisasterEnvironment {
     // Track which agents target which zone for congestion/synergy.
     const zoneResponders: Map<number, AgentId[]> = new Map();
     const cooperators: AgentId[] = [];
+
+    // Age all active incidents one tick at the start of the step (mirrors the
+    // notebook's zone_age increment), so a zone cleared this step is credited a
+    // response time of at least 1 — never zero.
+    for (const inc of this.incidents) inc.age += 1;
 
     // Sort incidents by severity (desc) so dispatch prioritises worst zones.
     const sorted = [...this.incidents].sort((a, b) => b.severity - a.severity);
@@ -189,7 +226,9 @@ export class DisasterEnvironment {
       const severe = sorted.find((inc) => inc.severity >= COOP_WORTH_SEV);
       if (severe) {
         cooperationEvents += 1;
-        const synergy = severe.severity * (1 + 0.35 * cooperators.length);
+        const synergy =
+          severe.severity *
+          (1 + 0.35 * cooperators.length * this.config.cooperationIncentive);
         for (const agent of cooperators) {
           this.budgets[agent] -= 1.0;
           rewardByAgent[agent] += synergy / cooperators.length;
@@ -204,9 +243,8 @@ export class DisasterEnvironment {
       }
     }
 
-    // Remove resolved incidents, age the rest.
+    // Remove resolved incidents (survivors were already aged at step start).
     this.incidents = this.incidents.filter((inc) => inc.severity > 0);
-    for (const inc of this.incidents) inc.age += 1;
 
     // Advance phase / spawn new arrivals.
     this.step += 1;
@@ -222,6 +260,8 @@ export class DisasterEnvironment {
     this.resolvedThisStep = resolved;
     this.totalResolved += resolved;
     this.cooperationEvents += cooperationEvents;
+    this.responseTimeSum += responseTimeSum;
+    this.responseTimeCount += responseTimeCount;
 
     return {
       reward,
@@ -312,28 +352,30 @@ export class DisasterEnvironment {
       cooperationEvents: this.cooperationEvents,
       resolvedThisStep: this.resolvedThisStep,
       totalResolved: this.totalResolved,
+      avgResponseTime: this.avgResponseTime(),
       actions: { ...this.lastActions },
     };
   }
 
+  /** Mean age-at-resolution across the episode (the response-time metric). */
+  avgResponseTime(): number {
+    return this.responseTimeCount > 0
+      ? this.responseTimeSum / this.responseTimeCount
+      : 0;
+  }
+
   /** Jain fairness over remaining-budget usage (lower-skew = fairer). */
   fairness(): number {
-    const used = AGENT_IDS.map(
-      (a) => CALIBRATION.budget[a] - this.budgets[a],
-    );
+    const start = this.scaledBudgets();
+    const used = AGENT_IDS.map((a) => start[a] - this.budgets[a]);
     return jainFairness(used);
   }
 
   /** Current resource utilisation share (0..1). */
   utilisation(): number {
-    const used = AGENT_IDS.reduce(
-      (acc, a) => acc + (CALIBRATION.budget[a] - this.budgets[a]),
-      0,
-    );
-    const base =
-      CALIBRATION.budget.Medical +
-      CALIBRATION.budget.Rescue +
-      CALIBRATION.budget.Logistics;
-    return Math.max(0, Math.min(1, used / base));
+    const start = this.scaledBudgets();
+    const used = AGENT_IDS.reduce((acc, a) => acc + (start[a] - this.budgets[a]), 0);
+    const base = start.Medical + start.Rescue + start.Logistics;
+    return Math.max(0, Math.min(1, base === 0 ? 0 : used / base));
   }
 }

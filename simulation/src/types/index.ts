@@ -50,8 +50,27 @@ export interface EnvSnapshot {
   cooperationEvents: number;
   resolvedThisStep: number;
   totalResolved: number;
+  avgResponseTime: number; // mean age-at-resolution so far (steps)
   actions: Record<AgentId, number>; // action index chosen by each agent
 }
+
+/**
+ * User-tunable scenario knobs (mirrors the notebook DisasterEnvironment
+ * parameters severity / budgets / coop_incentive). Defaults are all 1.0,
+ * which reproduces the calibrated benchmark exactly.
+ */
+export interface EnvConfig {
+  severityScale: number; // scales incident severity (disaster intensity)
+  resourceScale: number; // scales each agency's starting budget
+  cooperationIncentive: number; // scales the cooperative-synergy bonus
+}
+
+export const DEFAULT_ENV_CONFIG: EnvConfig = {
+  severityScale: 1,
+  resourceScale: 1,
+  cooperationIncentive: 1,
+};
+
 
 /** Calibration constants derived from FEMA + 911 data in the notebook. */
 export interface Calibration {

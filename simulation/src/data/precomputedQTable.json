@@ -49,10 +49,10 @@
     "cr": 0.0
   },
   "shapley": {
-    "Medical": 6.5,
-    "Rescue": 3.2,
-    "Logistics": 17.0,
-    "grandValue": 26.7
+    "Medical": -0.59,
+    "Rescue": 0.27,
+    "Logistics": 34.17,
+    "grandValue": 33.85
   },
   "stats": {
     "tStat": 11.652,

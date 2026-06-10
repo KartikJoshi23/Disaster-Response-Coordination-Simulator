@@ -17,20 +17,35 @@ const PERMUTATIONS: number[][] = [
 ];
 
 /**
- * Characteristic function v(S): value created by a coalition S of agencies.
- * Reflects the notebook's calibration — Logistics dominates (PA 98% activation),
- * and cooperation produces super-additive value (synergy) for severe events.
+ * Characteristic function v(S): mean incidents resolved when only the agencies
+ * in coalition S are active. These are the exact Monte-Carlo coalition values
+ * produced by the companion notebook (ShapleyValueCalculator, 40 episodes,
+ * seed 55), so the dashboard reproduces the notebook's Shapley allocation
+ * exactly: Medical −0.59, Rescue 0.27, Logistics 34.17, grand value 33.85.
  */
+const COALITION_VALUES: Record<string, number> = {
+  "": 0.0,
+  Medical: 0.0,
+  Rescue: 0.0,
+  Logistics: 36.28,
+  "Medical+Rescue": 1.65,
+  "Logistics+Medical": 33.15,
+  "Logistics+Rescue": 34.88,
+  "Logistics+Medical+Rescue": 33.85,
+};
+
+/** Canonical, order-independent key for a coalition (fixed agency ordering). */
+function coalitionKey(members: AgentId[]): string {
+  const order: AgentId[] = ["Logistics", "Medical", "Rescue"];
+  return order.filter((a) => members.includes(a)).join("+");
+}
+
 export function coalitionValue(members: AgentId[]): number {
-  const base: Record<AgentId, number> = {
-    Medical: 6.5,
-    Rescue: 3.2,
-    Logistics: 17.0,
-  };
-  let v = members.reduce((acc, m) => acc + base[m], 0);
-  // Super-additive synergy when 2+ agencies cooperate.
-  if (members.length >= 2) v += 1.6 * (members.length - 1);
-  if (members.length === 3) v += 1.4; // full-coalition coordination bonus
+  const key = coalitionKey(members);
+  const v = COALITION_VALUES[key];
+  if (v === undefined) {
+    throw new Error(`Unknown coalition value for "${key}"`);
+  }
   return v;
 }
 

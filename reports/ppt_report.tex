@@ -1,0 +1,393 @@
+% =====================================================================
+%  DisasterCoord AI  —  Presentation Source (NotebookLM-ready)
+%  Reasoning and Decision Making Under Uncertainty
+%  SP Jain School of Global Management, Dubai
+%
+%  HOW TO COMPILE ON OVERLEAF
+%  --------------------------
+%  1. Create a new Overleaf project and paste this file as main.tex.
+%  2. Upload the following images into the SAME project folder
+%     (drag-and-drop). Filenames must match exactly:
+%        a.png  b.png  c.png  d.png  e.png  f.png  6.png  8.png  11.png
+%  3. Set the compiler to "pdfLaTeX" (Menu -> Compiler). Compile.
+%
+%  All packages below ship with Overleaf's default TeX Live, so no
+%  extra setup is required.
+% =====================================================================
+\documentclass[aspectratio=169,11pt]{beamer}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage{amsmath}
+
+% ----------------------------- Theme --------------------------------
+\usetheme{default}
+\usefonttheme{professionalfonts}
+\setbeamertemplate{navigation symbols}{}
+
+% Dark, modern palette
+\definecolor{bg}{HTML}{0A0A0F}
+\definecolor{panel}{HTML}{14141C}
+\definecolor{accent}{HTML}{38BDF8}     % cyan
+\definecolor{accent2}{HTML}{A855F7}    % violet
+\definecolor{good}{HTML}{34D399}       % green
+\definecolor{ink}{HTML}{E5E7EB}        % light text
+\definecolor{muted}{HTML}{9CA3AF}      % muted text
+
+\setbeamercolor{background canvas}{bg=bg}
+\setbeamercolor{normal text}{fg=ink}
+\setbeamercolor{frametitle}{fg=accent}
+\setbeamercolor{title}{fg=accent}
+\setbeamercolor{itemize item}{fg=accent2}
+\setbeamercolor{itemize subitem}{fg=muted}
+\setbeamercolor{block title}{fg=bg,bg=accent}
+\setbeamercolor{block body}{fg=ink,bg=panel}
+
+\setbeamerfont{frametitle}{series=\bfseries,size=\large}
+\setbeamertemplate{frametitle}{%
+  \vspace{0.4em}\hspace{0.2em}\insertframetitle%
+  \vspace{-0.3em}\par{\color{accent2}\rule{\linewidth}{1.2pt}}}
+\setbeamertemplate{itemize item}{\small\raise0.2ex\hbox{\textbullet}}
+
+\newcommand{\hl}[1]{{\color{accent}\textbf{#1}}}
+\newcommand{\hg}[1]{{\color{good}\textbf{#1}}}
+
+% =====================================================================
+\title{\textbf{DisasterCoord AI}}
+\subtitle{Multi-Agent Disaster-Response Coordination\\
+under Uncertainty: Game Theory + Reinforcement Learning}
+\author{Kartik Rajesh Joshi}
+\institute{SP Jain School of Global Management, Dubai\\
+Reasoning and Decision Making Under Uncertainty}
+\date{}
+
+\begin{document}
+
+% --------------------------- Slide 1 --------------------------------
+\begin{frame}[plain]
+  \titlepage
+  \begin{center}
+    {\color{muted}\small Calibrated on real FEMA disaster declarations \&
+    911 emergency-call data}
+  \end{center}
+\end{frame}
+
+% --------------------------- Slide 2 --------------------------------
+\begin{frame}{The Problem}
+  \begin{columns}[T]
+    \begin{column}{0.56\textwidth}
+      \textbf{When disaster strikes, three agencies must act at once:}
+      \begin{itemize}
+        \item \hl{Medical} — triage \& casualty care
+        \item \hl{Rescue} — search \& extraction
+        \item \hl{Logistics} — supplies \& transport
+      \end{itemize}
+      \vspace{0.6em}
+      They share \hl{limited resources} over a 5$\times$5 grid of
+      disaster zones, with \hl{uncertain severity} revealed only through
+      noisy observations.
+      \vspace{0.6em}
+
+      \textbf{Central question:} should agents act \hl{greedily} or
+      \hg{coordinate}? We answer it with decision theory under
+      uncertainty.
+    \end{column}
+    \begin{column}{0.44\textwidth}
+      \begin{block}{Why it matters}
+        Real responses are decentralised. Selfish optimisation causes
+        \hl{congestion} (everyone rushes the same zone) and
+        \hl{neglect} (severe zones ignored). We quantify the cost of
+        non-cooperation and the gain from principled coordination.
+      \end{block}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% --------------------------- Slide 3 --------------------------------
+\begin{frame}{Grounded in Real Data}
+  \begin{columns}[T]
+    \begin{column}{0.5\textwidth}
+      The simulator is \hl{not} hand-tuned — its arrival rates and
+      budgets are calibrated from public datasets:
+      \begin{itemize}
+        \item \textbf{FEMA Declarations:} \hl{69{,}931} records
+              $\rightarrow$ \hl{29{,}752} filtered (2010–2024)
+        \item \textbf{911 Calls:} \hl{663{,}522} usable EMS / Fire /
+              Traffic events
+      \end{itemize}
+      \vspace{0.5em}
+      \textbf{Poisson arrival rates} $\lambda$:
+      \begin{itemize}
+        \item Medical \hl{4.51}, Rescue \hl{1.37}, Logistics \hl{3.12}
+      \end{itemize}
+      \textbf{Program activation:} Logistics dominates at \hl{98\%}.
+    \end{column}
+    \begin{column}{0.5\textwidth}
+      \centering
+      \includegraphics[width=\linewidth]{a.png}\\
+      {\color{muted}\scriptsize FEMA disaster declarations by incident
+      type, 2010–2024}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% --------------------------- Slide 4 --------------------------------
+\begin{frame}{Decision Architecture}
+  \textbf{Six interacting techniques across the uncertainty stack:}
+  \vspace{0.4em}
+  \begin{columns}[T]
+    \begin{column}{0.5\textwidth}
+      \begin{itemize}
+        \item \hl{MDP + Value Iteration} — single-agent optimal policy
+        \item \hl{POMDP + Bayesian belief} — acting under hidden
+              severity
+        \item \hl{Nash Equilibrium} — strategic stage game
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.5\textwidth}
+      \begin{itemize}
+        \item \hl{Nash Q-Learning} — multi-agent RL coordination
+        \item \hl{Shapley Value} — fair credit / resource allocation
+        \item \hl{AHP + TOPSIS} — multi-criteria strategy ranking
+      \end{itemize}
+    \end{column}
+  \end{columns}
+  \vspace{0.6em}
+  \begin{block}{The thread}
+    Each agency runs an \hl{MDP} for its own policy, reasons about
+    hidden state with a \hl{POMDP belief}, plays a \hl{Nash} stage
+    game against the others, learns to \hg{cooperate} via
+    \hl{Nash-Q}, splits credit \hl{fairly} via \hl{Shapley}, and we
+    rank all strategies objectively with \hl{AHP-TOPSIS}.
+  \end{block}
+\end{frame}
+
+% --------------------------- Slide 5 --------------------------------
+\begin{frame}{Optimal Policy under Full Information (MDP)}
+  \begin{columns}[T]
+    \begin{column}{0.5\textwidth}
+      Each agent's resource-dispatch problem is a \hl{Markov Decision
+      Process}. We solve it with \hl{Value Iteration}:
+      \begin{itemize}
+        \item Converges in \hl{$\sim$291 iterations}
+              ($\theta = 10^{-6}$, $\gamma = 0.95$)
+        \item \hl{Policy Iteration agrees on 100\%} of states —
+              a correctness cross-check
+      \end{itemize}
+      \vspace{0.4em}
+      This gives the \hg{benchmark} a perfectly-informed, selfish agent
+      could achieve — the baseline coordination must beat.
+    \end{column}
+    \begin{column}{0.5\textwidth}
+      \centering
+      \includegraphics[width=\linewidth]{c.png}\\
+      {\color{muted}\scriptsize T4 — Value-Iteration convergence,
+      Medical-agent MDP}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% --------------------------- Slide 6 --------------------------------
+\begin{frame}{Reasoning with Hidden Severity (POMDP)}
+  \begin{columns}[T]
+    \begin{column}{0.5\textwidth}
+      Severity is \hl{never observed directly}. Agents maintain a
+      \hl{Bayesian belief} over severity levels and update it with each
+      noisy sensor reading.
+      \begin{itemize}
+        \item True level = \hl{3}
+        \item Belief mode \hg{locks onto the truth} within
+              \hl{$\sim$5 observations}
+        \item Posterior confidence approaches \hl{1.0}
+      \end{itemize}
+      \vspace{0.4em}
+      Result: robust decisions \hl{before} the situation is fully known.
+    \end{column}
+    \begin{column}{0.5\textwidth}
+      \centering
+      \includegraphics[width=\linewidth]{6.png}\\
+      {\color{muted}\scriptsize T8 — POMDP belief evolution toward the
+      true severity level}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% --------------------------- Slide 7 --------------------------------
+\begin{frame}{The Strategic Tension (Nash Equilibrium)}
+  \begin{columns}[T]
+    \begin{column}{0.5\textwidth}
+      The agencies play a \hl{stage game}: cooperate on a severe zone,
+      or pursue private gain.
+      \begin{itemize}
+        \item Uncoordinated overlap $\rightarrow$ \hl{congestion}
+              (diminishing returns)
+        \item Joint action on severe zones $\rightarrow$ \hg{synergy}
+        \item We select the \hl{Pareto-efficient Nash equilibrium}
+              via multi-start iterated best response
+      \end{itemize}
+      \vspace{0.4em}
+      The pure-greedy equilibrium is \hl{socially sub-optimal} — the
+      classic coordination dilemma.
+    \end{column}
+    \begin{column}{0.5\textwidth}
+      \centering
+      \includegraphics[width=\linewidth]{d.png}\\
+      {\color{muted}\scriptsize T9 — Stage-game payoffs: Nash vs
+      Cooperative vs Competitive}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% --------------------------- Slide 8 --------------------------------
+\begin{frame}{Learning to Cooperate (Nash Q-Learning)}
+  \begin{columns}[T]
+    \begin{column}{0.5\textwidth}
+      Agents learn joint policies with \hl{Nash Q-Learning}
+      ($\alpha=0.1$, $\gamma=0.95$, $\varepsilon: 1.0\!\rightarrow\!0.05$).
+      \begin{itemize}
+        \item \hl{1000} training / \hl{100} evaluation episodes
+        \item Cooperation rises from \hl{1.02} to \hg{3.27}
+              events per episode
+        \item Nash-Q beats Greedy on reward:
+              \hl{$t = 11.65$, $p \approx 4{\times}10^{-24}$}
+      \end{itemize}
+      \vspace{0.3em}
+      Coordination is \hg{learned}, not imposed — and the gain is
+      statistically decisive.
+    \end{column}
+    \begin{column}{0.5\textwidth}
+      \centering
+      \includegraphics[width=\linewidth]{8.png}\\
+      {\color{muted}\scriptsize T10 — Learning curves: Nash Q-Learning
+      vs baselines}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% --------------------------- Slide 9 --------------------------------
+\begin{frame}{Fair Credit \& Objective Ranking}
+  \begin{itemize}
+    \item \textbf{Shapley value} splits the coalition's worth fairly:
+          grand value \hl{$\approx$33.85}, with \hl{Logistics dominant}
+          ($\phi_L\approx$34.2, $\phi_R\approx$0.3, $\phi_M\approx-0.6$);
+          the efficiency axiom is verified.
+    \item \textbf{AHP + TOPSIS} ranks strategies on 4 criteria —
+          Response-Time \& Fairness co-primary (weight \hl{0.375} each),
+          \hl{CR = 0.000} (fully consistent).
+  \end{itemize}
+  \vspace{0.2em}
+  \begin{columns}[T]
+    \begin{column}{0.5\textwidth}
+      \centering
+      \includegraphics[height=0.42\textheight]{e.png}\\
+      {\color{muted}\scriptsize T3 — Shapley credit vs equal vs
+      proportional}
+    \end{column}
+    \begin{column}{0.5\textwidth}
+      \centering
+      \includegraphics[height=0.42\textheight]{f.png}\\
+      {\color{muted}\scriptsize T11 — AHP weights \& TOPSIS ranking}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% --------------------------- Slide 10 -------------------------------
+\begin{frame}{Verdict: Coordination Wins}
+  \begin{columns}[T]
+    \begin{column}{0.54\textwidth}
+      \footnotesize
+      \begin{tabular}{lcc}
+        \toprule
+        \textbf{Strategy} & \textbf{TOPSIS $C^{*}$} & \textbf{Rank}\\
+        \midrule
+        \hg{Nash Q-Learning} & \hg{0.681} & \hg{1}\\
+        Cooperative Fixed    & 0.651 & 2\\
+        Greedy               & 0.591 & 3\\
+        Random               & 0.373 & 4\\
+        \bottomrule
+      \end{tabular}
+      \vspace{0.7em}
+
+      \normalsize
+      \begin{itemize}
+        \item \hg{Nash-Q ranks \#1} — \hl{+15.2\%} over Greedy on the
+              closeness coefficient
+        \item Learned coordination dominates both greedy and naive
+              cooperation
+        \item Result is \hl{data-grounded, consistent, and
+              statistically significant}
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.46\textwidth}
+      \centering
+      \includegraphics[width=\linewidth]{11.png}\\
+      {\color{muted}\scriptsize Cooperation rate over Nash-Q training}\\
+      \vspace{0.6em}
+      \begin{block}{Takeaway}
+        Under uncertainty, agencies that \hg{learn to cooperate}
+        respond faster, fairer, and resolve more — measurably.
+      \end{block}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% --------------------------- Closing --------------------------------
+\begin{frame}[plain]
+  \centering
+  \vspace{0.4em}
+  {\color{accent}\Huge\textbf{Thank You}}\\[0.2em]
+  {\color{ink}\large DisasterCoord AI}\\[0.6em]
+
+  {\color{accent2}\small\textbf{References}}
+  \vspace{0.2em}
+
+  \scriptsize
+  \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+      \begin{enumerate}\setlength\itemsep{0.25em}
+        \item Bellman, R. (1957) \textit{Dynamic Programming}.
+              Princeton University Press.
+        \item Nash, J. (1951) `Non-cooperative games', \textit{Annals
+              of Mathematics}, 54(2), pp.~286–295.
+        \item Shapley, L.S. (1953) `A value for n-person games',
+              \textit{Contributions to the Theory of Games}, 2,
+              pp.~307–317.
+        \item Hu, J. and Wellman, M.P. (2003) `Nash Q-learning for
+              general-sum stochastic games', \textit{JMLR}, 4,
+              pp.~1039–1069.
+      \end{enumerate}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \begin{enumerate}\setlength\itemsep{0.25em}\setcounter{enumi}{4}
+        \item Kaelbling, L.P., Littman, M.L. and Cassandra, A.R.
+              (1998) `Planning and acting in partially observable
+              stochastic domains', \textit{Artificial Intelligence},
+              101(1–2), pp.~99–134.
+        \item Saaty, T.L. (1980) \textit{The Analytic Hierarchy
+              Process}. New York: McGraw-Hill.
+        \item Hwang, C.L. and Yoon, K. (1981) \textit{Multiple
+              Attribute Decision Making}. Berlin: Springer.
+        \item Puterman, M.L. (1994) \textit{Markov Decision
+              Processes}. New York: Wiley.
+      \end{enumerate}
+    \end{column}
+  \end{columns}
+
+  \vspace{0.6em}
+  {\color{accent2}\rule{0.9\linewidth}{0.6pt}}
+  \vspace{0.4em}
+
+  \footnotesize
+  \begin{tabular}{r l}
+    {\color{accent}\textbf{GitHub repo:}} &
+      {\color{ink}https://github.com/KartikJoshi23/Disaster-Response-Coordination-Simulator}\\[0.25em]
+    {\color{accent}\textbf{Live Dashboard:}} &
+      {\color{ink}https://disastercoord-ai.vercel.app/}\\
+  \end{tabular}
+\end{frame}
+
+\end{document}
