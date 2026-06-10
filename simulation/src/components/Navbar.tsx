@@ -51,7 +51,7 @@ export default function Navbar({ page, onChange }: Props) {
               DisasterCoord&nbsp;AI
             </span>
             <span className="text-[10px] text-[var(--muted)]">
-              Multi-Agent Response · MAIB DSC 103
+              Multi-Agent Response
             </span>
           </span>
         </button>

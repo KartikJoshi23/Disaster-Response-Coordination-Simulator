@@ -96,8 +96,8 @@ export default function App() {
       </main>
 
       <footer className="text-center text-xs text-[var(--muted)] pb-8">
-        DisasterCoord AI · Multi-Agent Disaster Response · MAIB DSC 103 · SP Jain
-        School of Global Management, Dubai
+        DisasterCoord AI · Multi-Agent Disaster Response · SP Jain School of
+        Global Management, Dubai
       </footer>
     </div>
   );

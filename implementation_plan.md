@@ -1,7 +1,7 @@
 # DisasterCoord AI — Implementation Plan
 
 **Project:** Disaster Response Coordination Simulator using Multi-Agent Systems & Game Theory
-**Course:** Reasoning and Decision Making Under Uncertainty (MAIB DSC 103)
+**Course:** Reasoning and Decision Making Under Uncertainty
 **Institution:** SP Jain School of Global Management, Dubai Campus
 
 ---

@@ -2,7 +2,7 @@
 
 > Multi-agent disaster-response coordination using **game theory** and **reinforcement learning**, calibrated on real FEMA and 911 emergency data.
 
-**Course:** Reasoning and Decision Making Under Uncertainty (MAIB DSC 103)
+**Course:** Reasoning and Decision Making Under Uncertainty
 **Institution:** SP Jain School of Global Management, Dubai
 
 ---
