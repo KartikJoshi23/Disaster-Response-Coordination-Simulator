@@ -1,0 +1,56 @@
+# ============================================================================
+# DisasterCoord AI — .gitignore
+# ============================================================================
+
+# ---- Large raw datasets (exceed GitHub's 100 MB limit; fetched at runtime) ----
+# FEMA loads via the public API URL; 911 falls back to a synthetic log if absent.
+# Download 911.csv from https://www.kaggle.com/datasets/mchirico/montcoalert
+911.csv
+DisasterDeclarationsSummaries.csv
+PublicAssistanceFundedProjectsDetails.csv
+*.csv
+# ...but DO keep the small generated results table committed.
+!images/results_table.csv
+
+# ---- Node / Vite (simulation) ----
+node_modules/
+simulation/node_modules/
+simulation/dist/
+dist/
+*.local
+.vite/
+
+# ---- TypeScript build artefacts ----
+*.tsbuildinfo
+simulation/vite.config.js
+simulation/vite.config.d.ts
+
+# ---- Python ----
+.venv/
+venv/
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+# ---- LaTeX build artefacts ----
+*.aux
+*.log
+*.out
+*.toc
+*.synctex.gz
+*.fls
+*.fdb_latexmk
+*.bbl
+*.blg
+
+# ---- OS / editor ----
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+
+# ---- Logs ----
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*

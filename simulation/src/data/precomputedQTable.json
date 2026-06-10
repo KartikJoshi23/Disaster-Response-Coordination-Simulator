@@ -1,0 +1,66 @@
+{
+  "_comment": "Compact seed/reference values mirroring the notebook (notebook/solution.ipynb). Used as fallback + reference overlay so the UI shows validated outcomes even before in-browser training finishes.",
+  "calibration": {
+    "lambda": { "Medical": 4.513, "Rescue": 1.365, "Logistics": 3.123 },
+    "budget": { "Medical": 26.0, "Rescue": 10.0, "Logistics": 98.0 },
+    "programActivation": { "Medical": 0.26, "Rescue": 0.01, "Logistics": 0.98 }
+  },
+  "referenceMetrics": [
+    {
+      "strategy": "Nash Q-Learning",
+      "reward": 38.164,
+      "responseTime": 2.493,
+      "utilisation": 0.535,
+      "fairness": 0.526,
+      "resolved": 32.73,
+      "topsis": 0.681
+    },
+    {
+      "strategy": "Cooperative Fixed",
+      "reward": 44.568,
+      "responseTime": 2.32,
+      "utilisation": 0.535,
+      "fairness": 0.458,
+      "resolved": 33.16,
+      "topsis": 0.651
+    },
+    {
+      "strategy": "Greedy",
+      "reward": 29.17,
+      "responseTime": 2.46,
+      "utilisation": 0.507,
+      "fairness": 0.454,
+      "resolved": 30.74,
+      "topsis": 0.591
+    },
+    {
+      "strategy": "Random",
+      "reward": 50.681,
+      "responseTime": 3.479,
+      "utilisation": 0.663,
+      "fairness": 0.535,
+      "resolved": 49.87,
+      "topsis": 0.373
+    }
+  ],
+  "ahp": {
+    "criteria": ["ResponseTime", "Utilisation", "Fairness", "Resolved"],
+    "weights": [0.375, 0.125, 0.375, 0.125],
+    "cr": 0.0
+  },
+  "shapley": {
+    "Medical": 6.5,
+    "Rescue": 3.2,
+    "Logistics": 17.0,
+    "grandValue": 26.7
+  },
+  "stats": {
+    "tStat": 11.652,
+    "pValue": 4.021e-24,
+    "cooperationEarly": 1.02,
+    "cooperationLate": 3.27,
+    "viIterations": 291,
+    "beliefMode": 3,
+    "nashVsGreedyTopsisGainPct": 15.2
+  }
+}

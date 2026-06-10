@@ -1,0 +1,5 @@
+Strategy,Mean Reward,Response Time,Resource Utilisation,Fairness (Jain),Resolved/Episode,TOPSIS C*
+Nash Q-Learning,38.164,2.493,0.535,0.526,32.73,0.681
+Cooperative Fixed,44.568,2.32,0.535,0.458,33.16,0.651
+Greedy,29.17,2.46,0.507,0.454,30.74,0.591
+Random,50.681,3.479,0.663,0.535,49.87,0.373
