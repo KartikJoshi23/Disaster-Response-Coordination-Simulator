@@ -54,12 +54,9 @@ npm install
 npm run dev      # http://localhost:5173
 ```
 
-### Deploy on Vercel
+### Deployed on Vercel
 
-1. Import this repository on [vercel.com](https://vercel.com).
-2. Set **Root Directory** to `simulation`.
-3. Framework preset auto-detects **Vite** (build `npm run build`, output `dist`).
-4. Deploy — `simulation/vercel.json` handles the rest.
+Link: https://disastercoord-ai.vercel.app/
 
 ---
 
